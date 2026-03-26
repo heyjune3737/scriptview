@@ -1,0 +1,22 @@
+{
+  "name": "ScriptView — 대본 뷰어",
+  "short_name": "ScriptView",
+  "description": "마크다운(.md) 대본 파일을 문서 양식으로 보여주고 편집하는 앱",
+  "start_url": "/scriptview/",
+  "scope": "/scriptview/",
+  "display": "standalone",
+  "background_color": "#F5F0EB",
+  "theme_color": "#1a1a2e",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
