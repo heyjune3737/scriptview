@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1a1a2e">
 <title>ScriptView — 대본 뷰어</title>
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU2NyaXB0VmlldyIsInNob3J0X25hbWUiOiJTY3JpcHRWaWV3IiwiZGVzY3JpcHRpb24iOiLrjIDrs7gg67Ck7Ja0IOuwjyDtjrjsp5HquLAiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzFhMWEyZSIsInRoZW1lX2NvbG9yIjoiIzFhMWEyZSIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSFpwWlhkQ2IzZzlJakFnTUNBeE9USWdNVGt5SWlCM2FXUjBhRDBpTVRreUlpQm9aV2xuYUhROUlqRTVNaUkrUEhKbFkzUWdkMmxrZEdnOUlqRTVNaUlnYUdWcFoyaDBQU0l4T1RJaUlISjRQU0l5TUNJZ1ptbHNiRDBpSXpGaE1XRXlaU0l2UGp4MFpYaDBJSGc5SWprMklpQjVQU0k1TmlJZ1ptOXVkQzF6YVhwbFBTSTJOQ0lnZEdWNGRDMWhibU5vYjNJOUltMXBaR1JzWlNJZ1ptbHNiRDBpSTJabVppSWdabTl1ZEMxbVlXMXBiSGs5SWlkT2IzUnZJRk5sY21sbUlFdFNKeXdnYzJWeWFXWWlQOGVPNzhlenQ4ZWdQQzkwWlhoMFBqd3ZjM1puUGc9PSIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ==">
-<style>
+<link rel="manifest" href="manifest.json">
+<style>h
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -879,12 +879,10 @@ function init() {
   render();
 }
 
-// Register minimal service worker for PWA
-if ('serviceWorker' in navigator) {
-  const swCode = `self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));self.addEventListener('install', e => { e.waitUntil(caches.open('sv-v1').then(c => c.add('.'))); self.skipWaiting(); });self.addEventListener('activate', e => clients.claim());`;
-  const blob = new Blob([swCode], { type: 'application/javascript' });
-  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
-}
+// Register service worker for PWA
+  if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
 
 init();
 </script>
