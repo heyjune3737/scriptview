@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a1a2e">
+<title>ScriptView — 대본 뷰어</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU2NyaXB0VmlldyIsInNob3J0X25hbWUiOiJTY3JpcHRWaWV3IiwiZGVzY3JpcHRpb24iOiLrjIDrs7gg67Ck7Ja0IOuwjyDtjrjsp5HquLAiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzFhMWEyZSIsInRoZW1lX2NvbG9yIjoiIzFhMWEyZSIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSFpwWlhkQ2IzZzlJakFnTUNBeE9USWdNVGt5SWlCM2FXUjBhRDBpTVRreUlpQm9aV2xuYUhROUlqRTVNaUkrUEhKbFkzUWdkMmxrZEdnOUlqRTVNaUlnYUdWcFoyaDBQU0l4T1RJaUlISjRQU0l5TUNJZ1ptbHNiRDBpSXpGaE1XRXlaU0l2UGp4MFpYaDBJSGc5SWprMklpQjVQU0k1TmlJZ1ptOXVkQzF6YVhwbFBTSTJOQ0lnZEdWNGRDMWhibU5vYjNJOUltMXBaR1JzWlNJZ1ptbHNiRDBpSTJabVppSWdabTl1ZEMxbVlXMXBiSGs5SWlkT2IzUnZJRk5sY21sbUlFdFNKeXdnYzJWeWFXWWlQOGVPNzhlenQ4ZWdQQzkwWlhoMFBqd3ZjM1puUGc9PSIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ==">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #F5F0EB; --page-bg: #fff; --text: #1a1a1a; --muted: #666;
+    --accent: #2C5F8A; --accent-light: #E8F0FA; --orange: #E8833A;
+    --border: #E0D8D0; --sidebar-bg: #FBF8F5; --hover: #F0F4FF;
+    --toolbar-bg: rgba(255,255,255,0.92); --scene-border: #1a1a2e;
+    --act-bg: #F5F0EB; --sfx-bg: #FFF8F0; --direction-color: #444;
+    --char-highlight-1: #2C5F8A; --char-highlight-2: #8A2C5F;
+    --char-highlight-3: #5F8A2C; --char-highlight-4: #8A5F2C;
+    --char-highlight-5: #2C8A5F; --char-highlight-6: #5F2C8A;
+  }
+
+  .dark {
+    --bg: #0f1729; --page-bg: #16213e; --text: #e0e0e0; --muted: #888;
+    --accent: #4A90D9; --accent-light: #1a2540; --orange: #E8833A;
+    --border: #2a2a4a; --sidebar-bg: #0a1020; --hover: #1a2540;
+    --toolbar-bg: rgba(15,23,41,0.92); --scene-border: #4A90D9;
+    --act-bg: #1a2540; --sfx-bg: #1a2030; --direction-color: #b0b0b0;
+    --char-highlight-1: #6AB0FF; --char-highlight-2: #FF6AB0;
+    --char-highlight-3: #B0FF6A; --char-highlight-4: #FFB06A;
+    --char-highlight-5: #6AFFB0; --char-highlight-6: #B06AFF;
+  }
+
+  body {
+    font-family: 'Noto Serif KR', 'Batang', Georgia, serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; transition: all 0.3s;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── Landing ─── */
+  .landing { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; text-align: center; }
+  .landing-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
+  .landing h1 { font-size: 28px; font-weight: 900; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .landing p { font-size: 15px; color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+  .drop-zone {
+    border: 2px dashed var(--accent); border-radius: 12px; padding: 40px 48px;
+    cursor: pointer; background: var(--accent-light); transition: all 0.2s;
+  }
+  .drop-zone:hover { border-color: var(--orange); background: var(--sfx-bg); }
+  .drop-zone .icon { font-size: 36px; margin-bottom: 12px; }
+  .drop-zone .main-text { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .drop-zone .sub-text { font-size: 13px; color: var(--muted); }
+  .demo-btn {
+    margin-top: 20px; background: none; border: 1px solid var(--muted);
+    color: var(--muted); padding: 8px 20px; border-radius: 6px;
+    cursor: pointer; font-size: 13px; font-family: inherit;
+  }
+
+  /* ─── Toolbar ─── */
+  .toolbar {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--toolbar-bg); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 16px; display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap;
+  }
+  .toolbar-btn {
+    background: var(--act-bg); border: 1px solid var(--border);
+    color: var(--text); padding: 6px 12px; border-radius: 6px;
+    cursor: pointer; font-size: 12px; font-weight: 500;
+    font-family: 'Noto Sans KR', sans-serif; display: flex; align-items: center; gap: 4px;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .toolbar-btn:hover { background: var(--hover); }
+  .toolbar-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .toolbar-spacer { flex: 1; }
+  .toolbar-filename { font-size: 13px; font-weight: 600; opacity: 0.6; text-align: center; }
+
+  /* ─── Sidebar ─── */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 280px;
+    background: var(--sidebar-bg); border-right: 1px solid var(--border);
+    z-index: 40; overflow-y: auto; transform: translateX(-100%);
+    transition: transform 0.3s; padding-top: 56px;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-header { padding: 16px; font-weight: 700; font-size: 14px; border-bottom: 1px solid var(--border); }
+  .sidebar-item {
+    padding: 8px 16px; cursor: pointer; font-size: 13px; transition: background 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-item:hover { background: var(--hover); }
+  .sidebar-item.act { font-weight: 700; color: var(--accent); border-left-color: var(--accent); padding: 12px 16px; }
+  .sidebar-item.scene { padding-left: 28px; font-size: 12px; }
+
+  /* ─── Stats Panel ─── */
+  .stats-panel {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 320px;
+    background: var(--sidebar-bg); border-left: 1px solid var(--border);
+    z-index: 40; overflow-y: auto; transform: translateX(100%);
+    transition: transform 0.3s; padding-top: 56px;
+  }
+  .stats-panel.open { transform: translateX(0); }
+  .stats-header { padding: 16px; font-weight: 700; font-size: 14px; border-bottom: 1px solid var(--border); }
+  .stat-row {
+    display: flex; align-items: center; padding: 10px 16px; gap: 10px;
+    border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .stat-bar-wrap { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .stat-bar { height: 100%; border-radius: 4px; transition: width 0.5s; }
+  .stat-name { width: 80px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stat-count { width: 40px; text-align: right; font-size: 12px; color: var(--muted); }
+
+  /* ─── Page Content ─── */
+  .page-wrap { display: flex; justify-content: center; padding: 32px 20px 80px; transition: margin 0.3s; }
+  .page {
+    width: 100%; max-width: 800px; background: var(--page-bg);
+    box-shadow: 0 2px 24px rgba(0,0,0,0.08); border-radius: 4px;
+    padding: 60px 72px; min-height: 90vh;
+  }
+
+  /* ─── Block Styles ─── */
+  .block { border-radius: 3px; padding: 2px 4px; cursor: text; transition: background 0.15s; }
+  .block:hover { background: var(--hover); }
+  .block-title { text-align: center; font-size: 26px; font-weight: 900; letter-spacing: -1px; line-height: 1.3; margin-bottom: 8px; }
+  .block-metadata { text-align: center; font-size: 13px; color: var(--muted); line-height: 1.8; }
+  .block-hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+  .block-act {
+    margin: 36px 0 20px; padding: 14px 20px;
+    background: var(--act-bg); border-left: 4px solid var(--accent);
+    border-radius: 0 6px 6px 0; font-size: 18px; font-weight: 800;
+    letter-spacing: 1px; color: var(--accent);
+  }
+  .block-scene {
+    display: flex; align-items: center; margin: 28px 0 8px;
+    padding: 10px 0; border-bottom: 2px solid var(--scene-border);
+  }
+  .scene-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--scene-border); color: #fff; font-weight: 700;
+    font-size: 13px; width: 36px; height: 36px; border-radius: 50%;
+    margin-right: 12px; flex-shrink: 0;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .scene-text { font-size: 16px; font-weight: 700; flex: 1; }
+  .block-slugline { font-size: 13px; color: var(--muted); font-style: italic; padding-left: 48px; margin-bottom: 12px; }
+  .block-character {
+    margin-top: 16px; padding-left: 100px;
+    font-size: 14px; font-weight: 800; letter-spacing: 1px;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .block-dialogue { margin: 2px 0 12px; padding-left: 120px; padding-right: 60px; font-size: 15px; line-height: 1.75; white-space: pre-wrap; }
+  .block-direction { margin: 6px 0 10px; font-size: 14px; line-height: 1.7; color: var(--direction-color); }
+  .block-sfx {
+    margin: 8px 0; padding: 6px 12px;
+    background: var(--sfx-bg); border-left: 3px solid var(--orange);
+    border-radius: 0 4px 4px 0; font-size: 13px;
+    color: var(--orange); font-weight: 600;
+  }
+  .block-transition { text-align: center; margin: 20px 0; font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--muted); }
+
+  /* Character highlight */
+  .char-hl-0 { color: var(--char-highlight-1); }
+  .char-hl-1 { color: var(--char-highlight-2); }
+  .char-hl-2 { color: var(--char-highlight-3); }
+  .char-hl-3 { color: var(--char-highlight-4); }
+  .char-hl-4 { color: var(--char-highlight-5); }
+  .char-hl-5 { color: var(--char-highlight-6); }
+
+  /* ─── Edit Mode ─── */
+  .edit-input, .edit-textarea {
+    width: 100%; border: 2px solid var(--accent); border-radius: 4px;
+    padding: 6px 8px; font-family: inherit; font-size: inherit;
+    line-height: inherit; background: var(--accent-light);
+    color: var(--text); outline: none; resize: vertical;
+  }
+  .edit-textarea { min-height: 60px; }
+
+  /* ─── Overlay backdrop ─── */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 35; }
+
+  /* ─── Search bar ─── */
+  .search-bar {
+    position: fixed; top: 56px; left: 50%; transform: translateX(-50%);
+    z-index: 60; background: var(--page-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    display: flex; gap: 8px; align-items: center; width: 90%; max-width: 480px;
+  }
+  .search-bar input {
+    flex: 1; border: none; outline: none; font-size: 14px;
+    background: transparent; color: var(--text); font-family: inherit;
+  }
+  .search-info { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  /* ─── Toast ─── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--scene-border); color: #fff; padding: 10px 24px;
+    border-radius: 8px; font-size: 13px; z-index: 100;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ─── Mobile ─── */
+  @media (max-width: 768px) {
+    .page { padding: 24px 20px; }
+    .block-character { padding-left: 16px; }
+    .block-dialogue { padding-left: 32px; padding-right: 16px; }
+    .block-slugline { padding-left: 16px; }
+    .block-act { padding: 10px 14px; font-size: 15px; }
+    .block-title { font-size: 22px; }
+    .scene-badge { width: 30px; height: 30px; font-size: 11px; margin-right: 8px; }
+    .scene-text { font-size: 14px; }
+    .toolbar { padding: 6px 10px; gap: 4px; }
+    .toolbar-btn { padding: 5px 8px; font-size: 11px; }
+    .sidebar { width: 260px; }
+    .stats-panel { width: 280px; }
+    .landing h1 { font-size: 22px; }
+    .drop-zone { padding: 28px 24px; }
+  }
+
+  @media (max-width: 480px) {
+    .page { padding: 16px 14px; }
+    .block-dialogue { padding-left: 20px; padding-right: 8px; }
+    .block-character { padding-left: 8px; }
+  }
+
+  /* Drag highlight */
+  .drag-over { outline: 3px dashed var(--accent); outline-offset: -3px; }
+
+  /* Print */
+  @media print {
+    .toolbar, .sidebar, .stats-panel, .search-bar, .toast { display: none !important; }
+    .page-wrap { padding: 0; }
+    .page { box-shadow: none; max-width: 100%; padding: 40px; }
+    body { background: #fff; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ══════════════════════════════════════════
+// ScriptView — 대본 뷰어 & 에디터 (PWA)
+// ══════════════════════════════════════════
+
+const CHAR_COLORS = ['char-hl-0','char-hl-1','char-hl-2','char-hl-3','char-hl-4','char-hl-5'];
+
+// ─── State ───
+let state = {
+  blocks: [],
+  metadata: { title: '', info: [] },
+  fileName: '',
+  darkMode: localStorage.getItem('sv-dark') === '1',
+  showOutline: false,
+  showStats: false,
+  showSearch: false,
+  searchQuery: '',
+  searchResults: [],
+  searchIdx: -1,
+  editingId: null,
+  editText: '',
+  charColors: {},
+  highlightChar: null,
+  toast: ''
+};
+
+// ─── Markdown Parser ───
+function parseScript(md) {
+  const lines = md.split('\n');
+  const blocks = [];
+  const metadata = { title: '', info: [] };
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const t = line.trim();
+    if (t === '') { i++; continue; }
+    if (/^-{3,}$/.test(t)) { blocks.push({ type: 'hr', text: '', id: blocks.length }); i++; continue; }
+    if (/^# /.test(t)) {
+      metadata.title = t.replace(/^# /, '');
+      blocks.push({ type: 'title', text: metadata.title, id: blocks.length }); i++; continue;
+    }
+    if (/^\*\*[^*]+\*\*$/.test(t) && blocks.length <= 5 && blocks.some(b => b.type === 'title')) {
+      const txt = t.replace(/\*\*/g, '');
+      metadata.info.push(txt);
+      blocks.push({ type: 'metadata', text: txt, id: blocks.length }); i++; continue;
+    }
+    if (/^## /.test(t)) { blocks.push({ type: 'act', text: t.replace(/^## /, ''), id: blocks.length }); i++; continue; }
+    if (/^### /.test(t)) {
+      blocks.push({ type: 'scene', text: t.replace(/^### /, ''), id: blocks.length }); i++;
+      if (i < lines.length && /^ {4}/.test(lines[i]) && lines[i].trim()) {
+        blocks.push({ type: 'slugline', text: lines[i].trim(), id: blocks.length }); i++;
+      }
+      continue;
+    }
+    if (/^ {4}/.test(line) && t) { blocks.push({ type: 'slugline', text: t, id: blocks.length }); i++; continue; }
+    if (/^\*\*SFX\*\*/.test(t)) { blocks.push({ type: 'sfx', text: t.replace(/\*\*/g, ''), id: blocks.length }); i++; continue; }
+    if (/^\*\*V\.O/.test(t)) { blocks.push({ type: 'vo', text: t.replace(/\*\*/g, ''), id: blocks.length }); i++; continue; }
+    if (/^\*\*\[/.test(t) || /^\*\*(INSERT|MONTAGE|FLASHBACK|CUT TO|FADE|INTERCUT)/.test(t)) {
+      blocks.push({ type: 'transition', text: t.replace(/\*\*/g, ''), id: blocks.length }); i++; continue;
+    }
+    if (/^\*\*[^*]+\*\*:?/.test(t) && t.replace(/\*\*/g,'').length < 60) {
+      const inner = t.replace(/\*\*/g,'');
+      if (/^(SFX|BGM|V\.O|INSERT|CUT|FADE|FLASH|TITLE|자막|MONTAGE|INTERCUT)/i.test(inner)) {
+        blocks.push({ type: 'sfx', text: inner, id: blocks.length }); i++; continue;
+      }
+    }
+
+    // Character detection
+    const isChar = t.length <= 30 && !t.endsWith('.') && !t.endsWith('다.') && !t.endsWith('다')
+      && !t.startsWith('*') && !t.startsWith('#') && /^[가-힣a-zA-Z0-9\s()（）/]+$/.test(t);
+
+    if (isChar) {
+      let j = i + 1;
+      while (j < lines.length && lines[j].trim() === '') j++;
+      if (j < lines.length) {
+        const nl = lines[j].trim();
+        const nextIsMarkup = /^(#{1,3} |---|\*\*)/.test(nl);
+        const nextIsShortName = nl.length <= 30 && /^[가-힣a-zA-Z0-9\s()（）/]+$/.test(nl) && !nl.endsWith('.');
+        if (!nextIsMarkup && !nextIsShortName && nl.length > 0) {
+          blocks.push({ type: 'character', text: t, id: blocks.length }); i++;
+          let dLines = [];
+          while (i < lines.length && lines[i].trim() !== '') { dLines.push(lines[i].trim()); i++; }
+          if (dLines.length) blocks.push({ type: 'dialogue', text: dLines.join('\n'), id: blocks.length });
+          continue;
+        }
+      }
+    }
+
+    // Direction
+    let dLines = [t]; i++;
+    while (i < lines.length && lines[i].trim() !== '' && !/^(#{1,3} |---|\*\*(SFX|V\.O|INSERT|\[))/.test(lines[i].trim())) {
+      const nt = lines[i].trim();
+      const maybeChar = nt.length <= 30 && /^[가-힣a-zA-Z0-9\s()（）/]+$/.test(nt) && !nt.endsWith('.');
+      if (maybeChar) break;
+      dLines.push(nt); i++;
+    }
+    blocks.push({ type: 'direction', text: dLines.join(' '), id: blocks.length });
+  }
+  return { metadata, blocks };
+}
+
+// ─── Blocks → Markdown ───
+function toMarkdown(blocks) {
+  let md = '';
+  for (const b of blocks) {
+    switch (b.type) {
+      case 'title': md += `# ${b.text}\n\n`; break;
+      case 'metadata': md += `**${b.text}**\n`; break;
+      case 'hr': md += `---\n\n`; break;
+      case 'act': md += `## ${b.text}\n\n`; break;
+      case 'scene': md += `### ${b.text}\n\n`; break;
+      case 'slugline': md += `    ${b.text}\n\n`; break;
+      case 'character': md += `${b.text}\n`; break;
+      case 'dialogue': md += `${b.text}\n\n`; break;
+      case 'direction': md += `${b.text}\n\n`; break;
+      case 'sfx': case 'vo': md += `**${b.text}**\n\n`; break;
+      case 'transition': md += `**${b.text}**\n\n`; break;
+    }
+  }
+  return md;
+}
+
+// ─── Character Stats ───
+function getCharStats(blocks) {
+  const stats = {};
+  for (let i = 0; i < blocks.length; i++) {
+    if (blocks[i].type === 'character') {
+      const name = blocks[i].text;
+      if (!stats[name]) stats[name] = { lines: 0, chars: 0 };
+      stats[name].lines++;
+      if (i + 1 < blocks.length && blocks[i + 1].type === 'dialogue') {
+        stats[name].chars += blocks[i + 1].text.length;
+      }
+    }
+  }
+  return Object.entries(stats).sort((a, b) => b[1].lines - a[1].lines);
+}
+
+function getCharColor(name) {
+  if (!state.charColors[name]) {
+    const idx = Object.keys(state.charColors).length % CHAR_COLORS.length;
+    state.charColors[name] = CHAR_COLORS[idx];
+  }
+  return state.charColors[name];
+}
+
+// ─── Search ───
+function doSearch(query) {
+  if (!query) { state.searchResults = []; state.searchIdx = -1; return; }
+  const q = query.toLowerCase();
+  state.searchResults = state.blocks.filter(b => b.text.toLowerCase().includes(q)).map(b => b.id);
+  state.searchIdx = state.searchResults.length > 0 ? 0 : -1;
+}
+
+// ─── Toast ───
+function showToast(msg) {
+  state.toast = msg; render();
+  setTimeout(() => { state.toast = ''; render(); }, 2000);
+}
+
+// ─── Actions ───
+function loadScript(text, name) {
+  const { metadata, blocks } = parseScript(text);
+  state.metadata = metadata;
+  state.blocks = blocks;
+  state.fileName = name || 'script.md';
+  state.charColors = {};
+  // Assign colors
+  blocks.filter(b => b.type === 'character').forEach(b => getCharColor(b.text));
+  // Auto-save
+  try { localStorage.setItem('sv-script', text); localStorage.setItem('sv-filename', state.fileName); } catch(e) {}
+  render();
+}
+
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => loadScript(e.target.result, file.name);
+  reader.readAsText(file);
+}
+
+function exportMd() {
+  const md = toMarkdown(state.blocks);
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = state.fileName || 'script.md';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('✓ 마크다운 저장 완료');
+}
+
+function startEdit(id) {
+  const b = state.blocks.find(x => x.id === id);
+  if (!b || b.type === 'hr') return;
+  state.editingId = id;
+  state.editText = b.text;
+  render();
+  setTimeout(() => {
+    const el = document.getElementById('edit-field');
+    if (el) { el.focus(); el.selectionStart = el.value.length; }
+  }, 20);
+}
+
+function finishEdit() {
+  if (state.editingId === null) return;
+  const b = state.blocks.find(x => x.id === state.editingId);
+  if (b && state.editText !== b.text) {
+    b.text = state.editText;
+    // Auto-save
+    try { localStorage.setItem('sv-script', toMarkdown(state.blocks)); } catch(e) {}
+  }
+  state.editingId = null;
+  render();
+}
+
+function scrollToBlock(id) {
+  const el = document.getElementById('b-' + id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ─── Render ───
+function render() {
+  const app = document.getElementById('app');
+  document.body.className = state.darkMode ? 'dark' : '';
+
+  if (state.blocks.length === 0) {
+    app.innerHTML = renderLanding();
+    bindLanding();
+    return;
+  }
+
+  let html = '';
+
+  // Toolbar
+  html += `<div class="toolbar">
+    <button class="toolbar-btn ${state.showOutline ? 'active' : ''}" id="btn-outline">${state.showOutline ? '◀' : '☰'} 목차</button>
+    <button class="toolbar-btn" id="btn-search">🔍 검색</button>
+    <button class="toolbar-btn ${state.highlightChar ? 'active' : ''}" id="btn-char-toggle">👤 캐릭터</button>
+    <span class="toolbar-spacer"></span>
+    <span class="toolbar-filename">${esc(state.fileName)}</span>
+    <span class="toolbar-spacer"></span>
+    <button class="toolbar-btn" id="btn-stats">📊 통계</button>
+    <button class="toolbar-btn" id="btn-open">📂 열기</button>
+    <button class="toolbar-btn" id="btn-save">💾 저장</button>
+    <button class="toolbar-btn" id="btn-dark" style="font-size:16px;padding:4px 8px">${state.darkMode ? '☀️' : '🌙'}</button>
+    <input type="file" accept=".md,.txt" id="file-input" style="display:none">
+  </div>`;
+
+  // Sidebar
+  const scenes = state.blocks.filter(b => b.type === 'scene' || b.type === 'act');
+  html += `<div class="sidebar ${state.showOutline ? 'open' : ''}" id="sidebar">
+    <div class="sidebar-header">씬 목차 (${state.blocks.filter(b=>b.type==='scene').length}씬)</div>
+    ${scenes.map(s => `<div class="sidebar-item ${s.type}" data-scroll="${s.id}">${esc(s.text)}</div>`).join('')}
+  </div>`;
+
+  // Stats panel
+  const charStats = getCharStats(state.blocks);
+  const maxLines = charStats.length > 0 ? charStats[0][1].lines : 1;
+  html += `<div class="stats-panel ${state.showStats ? 'open' : ''}" id="stats-panel">
+    <div class="stats-header">캐릭터별 대사 통계</div>
+    <div style="padding:12px 16px;font-size:12px;color:var(--muted)">
+      총 씬: ${state.blocks.filter(b=>b.type==='scene').length}개 &nbsp;|&nbsp;
+      총 대사: ${charStats.reduce((s,c)=>s+c[1].lines,0)}개 &nbsp;|&nbsp;
+      캐릭터: ${charStats.length}명
+    </div>
+    ${charStats.map(([name, s]) => {
+      const pct = Math.round(s.lines / maxLines * 100);
+      const cl = getCharColor(name);
+      return `<div class="stat-row" data-char="${esc(name)}" style="cursor:pointer">
+        <span class="stat-name ${cl}">${esc(name)}</span>
+        <div class="stat-bar-wrap"><div class="stat-bar ${cl}" style="width:${pct}%;background:currentColor;opacity:0.5"></div></div>
+        <span class="stat-count">${s.lines}대사</span>
+      </div>`;
+    }).join('')}
+  </div>`;
+
+  // Overlay
+  if (state.showOutline || state.showStats) {
+    html += `<div class="overlay" id="overlay"></div>`;
+  }
+
+  // Search bar
+  if (state.showSearch) {
+    const info = state.searchResults.length > 0 ? `${state.searchIdx + 1}/${state.searchResults.length}` : '';
+    html += `<div class="search-bar" id="search-bar">
+      <span>🔍</span>
+      <input type="text" id="search-input" placeholder="검색어 입력..." value="${esc(state.searchQuery)}">
+      <span class="search-info">${info}</span>
+      <button class="toolbar-btn" id="search-prev" style="padding:2px 6px">▲</button>
+      <button class="toolbar-btn" id="search-next" style="padding:2px 6px">▼</button>
+      <button class="toolbar-btn" id="search-close" style="padding:2px 8px">✕</button>
+    </div>`;
+  }
+
+  // Page content
+  html += `<div class="page-wrap" id="page-wrap">
+    <div class="page" id="page">
+      ${state.blocks.map(b => renderBlock(b)).join('')}
+    </div>
+  </div>`;
+
+  // Toast
+  html += `<div class="toast ${state.toast ? 'show' : ''}">${esc(state.toast)}</div>`;
+
+  app.innerHTML = html;
+  bindEvents();
+}
+
+function renderBlock(b) {
+  const isEditing = state.editingId === b.id;
+  const isSearchHit = state.searchResults.includes(b.id);
+  const isCurrentHit = state.searchIdx >= 0 && state.searchResults[state.searchIdx] === b.id;
+  const highlight = isCurrentHit ? 'outline:2px solid var(--orange);outline-offset:2px;' : (isSearchHit ? 'outline:1px dashed var(--accent);outline-offset:2px;' : '');
+
+  // Character highlight filter
+  if (state.highlightChar) {
+    if (b.type === 'character' && b.text !== state.highlightChar) {
+      return `<div id="b-${b.id}" style="opacity:0.2">${renderBlockInner(b, isEditing, highlight)}</div>`;
+    }
+    if (b.type === 'dialogue') {
+      const prevBlock = state.blocks[state.blocks.indexOf(b) - 1];
+      if (prevBlock && prevBlock.type === 'character' && prevBlock.text !== state.highlightChar) {
+        return `<div id="b-${b.id}" style="opacity:0.2">${renderBlockInner(b, isEditing, highlight)}</div>`;
+      }
+    }
+  }
+
+  return `<div id="b-${b.id}">${renderBlockInner(b, isEditing, highlight)}</div>`;
+}
+
+function renderBlockInner(b, isEditing, highlight) {
+  if (b.type === 'hr') return `<hr class="block-hr">`;
+
+  if (isEditing) {
+    const isMulti = b.type === 'dialogue' || b.type === 'direction';
+    if (isMulti) {
+      return `<textarea id="edit-field" class="edit-textarea" style="${getBlockStyle(b)}${highlight}">${esc(state.editText)}</textarea>`;
+    }
+    return `<input id="edit-field" class="edit-input" style="${getBlockStyle(b)}${highlight}" value="${esc(state.editText)}">`;
+  }
+
+  switch (b.type) {
+    case 'title': return `<div class="block block-title" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
+    case 'metadata': return `<div class="block block-metadata" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
+    case 'act': return `<div class="block block-act" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
+    case 'scene': {
+      const m = b.text.match(/S#(\d+)/);
+      const badge = m ? `<span class="scene-badge">${m[1]}</span>` : '';
+      return `<div class="block block-scene" data-edit="${b.id}" style="${highlight}">${badge}<span class="scene-text">${esc(b.text)}</span></div>`;
+    }
+    case 'slugline': return `<div class="block block-slugline" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
+    case 'character': {
+      const cl = getCharColor(b.text);
+      return `<div class="block block-character ${cl}" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
+    }
+    case 'dialogue': return `<div class="block block-dialogue" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
+    case 'direction': return `<div class="block block-direction" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
+    case 'sfx': case 'vo': return `<div class="block block-sfx" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
+    case 'transition': return `<div class="block block-transition" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
+    default: return `<div class="block" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
+  }
+}
+
+function getBlockStyle(b) {
+  const m = { title: 'font-size:26px;font-weight:900;text-align:center;', character: 'padding-left:100px;font-weight:800;', dialogue: 'padding-left:120px;font-size:15px;', act: 'font-size:18px;font-weight:800;' };
+  return m[b.type] || '';
+}
+
+function renderLanding() {
+  return `<div class="landing" id="landing">
+    <div class="landing-icon">📜</div>
+    <h1>ScriptView</h1>
+    <p>마크다운(.md) 대본 파일을 불러오면<br>문서 양식으로 보여주고, 바로 편집할 수 있습니다.</p>
+    <div class="drop-zone" id="drop-zone">
+      <div class="icon">📂</div>
+      <div class="main-text">클릭하여 파일 선택</div>
+      <div class="sub-text">또는 .md 파일을 여기에 드래그</div>
+    </div>
+    <input type="file" accept=".md,.txt" id="file-input-landing" style="display:none">
+    <button class="demo-btn" id="demo-btn">데모 대본 보기</button>
+    <div style="position:fixed;bottom:16px;right:20px">
+      <button id="dark-toggle-landing" style="background:none;border:none;font-size:22px;cursor:pointer;opacity:0.5">${state.darkMode ? '☀️' : '🌙'}</button>
+    </div>
+  </div>`;
+}
+
+// ─── Bind Events ───
+function bindLanding() {
+  const dz = document.getElementById('drop-zone');
+  const fi = document.getElementById('file-input-landing');
+  dz?.addEventListener('click', () => fi?.click());
+  fi?.addEventListener('change', e => handleFile(e.target.files[0]));
+  document.getElementById('demo-btn')?.addEventListener('click', () => loadScript(DEMO, '접신_데모.md'));
+  document.getElementById('dark-toggle-landing')?.addEventListener('click', () => { state.darkMode = !state.darkMode; localStorage.setItem('sv-dark', state.darkMode ? '1' : '0'); render(); });
+
+  // Drag & drop
+  document.body.addEventListener('dragover', e => { e.preventDefault(); dz?.classList.add('drag-over'); });
+  document.body.addEventListener('dragleave', () => dz?.classList.remove('drag-over'));
+  document.body.addEventListener('drop', e => { e.preventDefault(); dz?.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
+}
+
+function bindEvents() {
+  // Toolbar
+  document.getElementById('btn-outline')?.addEventListener('click', () => { state.showOutline = !state.showOutline; state.showStats = false; render(); });
+  document.getElementById('btn-stats')?.addEventListener('click', () => { state.showStats = !state.showStats; state.showOutline = false; render(); });
+  document.getElementById('btn-search')?.addEventListener('click', () => { state.showSearch = !state.showSearch; render(); setTimeout(() => document.getElementById('search-input')?.focus(), 50); });
+  document.getElementById('btn-dark')?.addEventListener('click', () => { state.darkMode = !state.darkMode; localStorage.setItem('sv-dark', state.darkMode ? '1' : '0'); render(); });
+  document.getElementById('btn-open')?.addEventListener('click', () => document.getElementById('file-input')?.click());
+  document.getElementById('btn-save')?.addEventListener('click', exportMd);
+  document.getElementById('file-input')?.addEventListener('change', e => handleFile(e.target.files[0]));
+  document.getElementById('overlay')?.addEventListener('click', () => { state.showOutline = false; state.showStats = false; render(); });
+
+  // Character highlight toggle
+  document.getElementById('btn-char-toggle')?.addEventListener('click', () => { state.highlightChar = null; state.showStats = !state.showStats; state.showOutline = false; render(); });
+
+  // Sidebar scroll
+  document.querySelectorAll('[data-scroll]').forEach(el => {
+    el.addEventListener('click', () => { scrollToBlock(el.dataset.scroll); state.showOutline = false; render(); });
+  });
+
+  // Stats character click -> highlight
+  document.querySelectorAll('[data-char]').forEach(el => {
+    el.addEventListener('click', () => {
+      const name = el.dataset.char;
+      state.highlightChar = state.highlightChar === name ? null : name;
+      state.showStats = false;
+      render();
+    });
+  });
+
+  // Search
+  document.getElementById('search-input')?.addEventListener('input', e => { state.searchQuery = e.target.value; doSearch(state.searchQuery); render(); setTimeout(() => { document.getElementById('search-input')?.focus(); if (state.searchIdx >= 0) scrollToBlock(state.searchResults[state.searchIdx]); }, 30); });
+  document.getElementById('search-prev')?.addEventListener('click', () => { if (state.searchResults.length) { state.searchIdx = (state.searchIdx - 1 + state.searchResults.length) % state.searchResults.length; render(); scrollToBlock(state.searchResults[state.searchIdx]); }});
+  document.getElementById('search-next')?.addEventListener('click', () => { if (state.searchResults.length) { state.searchIdx = (state.searchIdx + 1) % state.searchResults.length; render(); scrollToBlock(state.searchResults[state.searchIdx]); }});
+  document.getElementById('search-close')?.addEventListener('click', () => { state.showSearch = false; state.searchQuery = ''; state.searchResults = []; state.searchIdx = -1; render(); });
+
+  // Block editing
+  document.querySelectorAll('[data-edit]').forEach(el => {
+    el.addEventListener('click', () => startEdit(parseInt(el.dataset.edit)));
+  });
+
+  // Edit field events
+  const ef = document.getElementById('edit-field');
+  if (ef) {
+    ef.addEventListener('input', e => { state.editText = e.target.value; });
+    ef.addEventListener('blur', finishEdit);
+    ef.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { state.editText = state.blocks.find(b=>b.id===state.editingId)?.text || ''; finishEdit(); }
+      const b = state.blocks.find(x => x.id === state.editingId);
+      if (e.key === 'Enter' && !e.shiftKey && b && b.type !== 'dialogue' && b.type !== 'direction') { e.preventDefault(); finishEdit(); }
+    });
+  }
+
+  // Drag & drop on page
+  document.body.addEventListener('dragover', e => e.preventDefault());
+  document.body.addEventListener('drop', e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
+
+  // Keyboard shortcuts
+  document.onkeydown = e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); state.showSearch = true; render(); setTimeout(() => document.getElementById('search-input')?.focus(), 50); }
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); exportMd(); }
+  };
+}
+
+// ─── Helpers ───
+function esc(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ─── Demo Script ───
+const DEMO = `# 접신(接神) - 제1화 《손이 기억하는 것》
+
+**극본: v4 완성본**
+**목표 분량: 약 35 A4매, 70씬**
+**방송 시간: 약 60분**
+
+---
+
+## [PROLOGUE]
+
+### S#1 암흑 속
+
+    암흑 속
+
+형광등이 깜박인다. 한 번. 혼란스러운 밝음.
+
+서류가 흩어져 있다. 책상. 얼굴 없는 누군가가 바닥에 누워 있다. 목에 선명한 흔적.
+
+**SFX**: 피 떨어지는 소리. 한 방울. 또 한 방울.
+
+손이 보인다. 왼손. 손가락이 움직인다. 손톱이 손바닥에 파고든다.
+
+피가 난다. 손가락 아래에서.
+
+손을 보는 손의 주인은 그것을 멈추지 않는다.
+
+검은색으로 천천히 사라진다.
+
+---
+
+### S#2 자막: 48시간 전
+
+어둠.
+
+---
+
+## [ACT 1: 복귀와 균열]
+
+### S#3 서울중앙지방검찰청 / 부장검사실 (D)
+
+    서울중앙지방검찰청 부장검사실 (D)
+
+큰 창. 한강이 흐른다. 회색 하늘.
+
+오정민 부장검사(남/58)가 책상에 앉아 서류를 읽고 있다. 얼굴에서 감정이 빠져 있다. 가는 안경. 왼손 약지에 반지가 없다.
+
+문이 두드려진다.
+
+오정민
+들어와.
+
+문이 열린다.
+
+서하은 검사(여/36)가 들어선다. 검은 정장. 머리카락은 한 올도 어긋나지 않는다.
+
+서하은
+부장님.
+
+오정민
+복귀하자마자 인사도 먼저 안 하고?
+
+서하은
+미안합니다.
+
+그 말에 감정이 없다. 마치 프로토콜인 마냥.
+
+오정민이 이제 고개를 든다. 안경을 밀어올린다.
+
+오정민
+손 떨림 기록이 있었지. 영상의학과 소견.
+
+서하은의 왼손이 살짝 떤다. 자신도 안다.
+
+서하은
+네. 6개월 물리치료했습니다.
+
+오정민
+나았나.
+
+서하은
+괜찮습니다.
+
+오정민
+그럼 된 거고.
+
+옆 의자를 턱으로 가리킨다. 서하은이 앉는다. 속도가 조금 느리다.
+
+오정민
+15년 동안 94퍼센트. 좋은 숫자다.
+
+서하은
+노력했습니다.
+
+오정민
+노력이 아니라 냉정함이었지.
+
+### S#4 서하은의 읽는 얼굴 (D)
+
+    서하은의 얼굴 - 클로즈
+
+서류를 읽는 눈. 움직이지 않는다. 마치 카메라인 양.
+
+**V.O(기사 문체)** 살해 혐의자 윤서준(40). 부인 이수정(38) 흉기 살상. 지난 18일 오후 현장 발견. 유명 로펌 변호사 구성.
+
+### S#5 부장검사실 (D)
+
+서하은이 서류를 내려놓는다.
+
+서하은
+증거.
+
+오정민
+변호사가 뭐라고?
+
+서하은
+부인한다고 했겠지. 모두 부인한다.
+
+오정민
+그래. 그런데?
+
+서하은
+혈흔. CCTV. 범행 시간 알리바이가 없다.
+
+오정민
+충분한가.
+
+서하은이 잠시 생각한다. 왼손이 떤다.
+
+서하은
+증거만으로는...
+
+오정민
+?
+
+서하은
+경험입니다. 거짓말을 하는 사람의 얼굴. 목의 맥박. 숨을 쉬는 방식. 그것들이 말합니다.
+
+오정민
+그것들은 법이 아니야.
+
+서하은
+알고 있습니다.
+
+오정민
+하지만 넌 그것에 의존한다.
+
+서하은이 눈을 들어 오정민을 본다.
+
+오정민
+혹은 그것이 너를 지탱한다.
+`;
+
+// ─── Init ───
+function init() {
+  // Try restore from localStorage
+  try {
+    const saved = localStorage.getItem('sv-script');
+    const savedName = localStorage.getItem('sv-filename');
+    if (saved && saved.length > 10) {
+      loadScript(saved, savedName || 'script.md');
+      return;
+    }
+  } catch(e) {}
+  render();
+}
+
+// Register minimal service worker for PWA
+if ('serviceWorker' in navigator) {
+  const swCode = `self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));self.addEventListener('install', e => { e.waitUntil(caches.open('sv-v1').then(c => c.add('.'))); self.skipWaiting(); });self.addEventListener('activate', e => clients.claim());`;
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+}
+
+init();
+</script>
+</body>
+</html>
