@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <title>CreatorView MD — 창작자를 위한 마크다운 뷰어</title>
 <link rel="manifest" href="manifest.json">
-<style>h
+<style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -607,15 +607,15 @@ function renderBlockInner(b, isEditing, highlight) {
   }
 
   switch (b.type) {
-    case 'title': return `<div class="block block-title" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
-    case 'metadata': return `<div class="block block-metadata" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
-    case 'act': return `<div class="block block-act" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
+    case 'title': return `<div class="block block-title" data-edit="${b.id}" style="${highlight}">${parseInline(b.text)}</div>`;
+    case 'metadata': return `<div class="block block-metadata" data-edit="${b.id}" style="${highlight}">${parseInline(b.text)}</div>`;
+    case 'act': return `<div class="block block-act" data-edit="${b.id}" style="${highlight}">${parseInline(b.text)}</div>`;
     case 'scene': {
       const m = b.text.match(/S#(\d+)/);
       const badge = m ? `<span class="scene-badge">${m[1]}</span>` : '';
-      return `<div class="block block-scene" data-edit="${b.id}" style="${highlight}">${badge}<span class="scene-text">${esc(b.text)}</span></div>`;
+      return `<div class="block block-scene" data-edit="${b.id}" style="${highlight}">${badge}<span class="scene-text">${parseInline(b.text)}</span></div>`;
     }
-    case 'slugline': return `<div class="block block-slugline" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
+    case 'slugline': return `<div class="block block-slugline" data-edit="${b.id}" style="${highlight}">${parseInline(b.text)}</div>`;
     case 'character': {
       const cl = getCharColor(b.text);
       return `<div class="block block-character ${cl}" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
