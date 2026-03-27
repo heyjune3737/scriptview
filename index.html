@@ -19,6 +19,19 @@
 <meta name="twitter:title" content="CreatorView MD — 창작자를 위한 마크다운 뷰어">
 <meta name="twitter:description" content="마크다운(.md) 대본 파일을 문서 양식으로 보여주고 편집하는 창작자용 뷰어">
 <meta name="twitter:image" content="https://heyjune3737.github.io/scriptview/og-image.png">
+<script>
+  // ─── PWA Install Prompt (최상단 캡처) ───
+  let _installPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    _installPrompt = e;
+    if (typeof render === 'function') render();
+  });
+  window.addEventListener('appinstalled', () => {
+    _installPrompt = null;
+    if (typeof render === 'function') render();
+  });
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 
@@ -933,18 +946,6 @@ function init() {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
-
-// ─── PWA Install Prompt ───
-let _installPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  _installPrompt = e;
-  render(); // show install button
-});
-window.addEventListener('appinstalled', () => {
-  _installPrompt = null;
-  render();
-});
 
 init();
 </script>
