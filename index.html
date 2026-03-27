@@ -163,6 +163,13 @@
   }
   .block-transition { text-align: center; margin: 20px 0; font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--muted); }
 
+  /* ─── Table ─── */
+  .block-table { margin: 16px 0; overflow-x: auto; }
+  .block-table table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  .block-table th, .block-table td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; line-height: 1.6; }
+  .block-table th { background: var(--act-bg); font-weight: 700; font-family: 'Noto Sans KR', sans-serif; }
+  .block-table tr:nth-child(even) td { background: var(--accent-light); }
+
   /* Character highlight */
   .char-hl-0 { color: var(--char-highlight-1); }
   .char-hl-1 { color: var(--char-highlight-2); }
@@ -270,6 +277,14 @@ let state = {
   toast: ''
 };
 
+// ─── Inline Markdown ───
+function parseInline(text) {
+  // Escape HTML first, then apply bold/italic markdown
+  return esc(text)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+}
+
 // ─── Markdown Parser ───
 function parseScript(md) {
   const lines = md.split('\n');
@@ -300,6 +315,11 @@ function parseScript(md) {
       continue;
     }
     if (/^ {4}/.test(line) && t) { blocks.push({ type: 'slugline', text: t, id: blocks.length }); i++; continue; }
+    if (/^\|/.test(t)) {
+      let tRows = [t]; i++;
+      while (i < lines.length && /^\|/.test(lines[i].trim())) { tRows.push(lines[i].trim()); i++; }
+      blocks.push({ type: 'table', text: tRows.join('\n'), id: blocks.length }); continue;
+    }
     if (/^\*\*SFX\*\*/.test(t)) { blocks.push({ type: 'sfx', text: t.replace(/\*\*/g, ''), id: blocks.length }); i++; continue; }
     if (/^\*\*V\.O/.test(t)) { blocks.push({ type: 'vo', text: t.replace(/\*\*/g, ''), id: blocks.length }); i++; continue; }
     if (/^\*\*\[/.test(t) || /^\*\*(INSERT|MONTAGE|FLASHBACK|CUT TO|FADE|INTERCUT)/.test(t)) {
@@ -362,6 +382,7 @@ function toMarkdown(blocks) {
       case 'direction': md += `${b.text}\n\n`; break;
       case 'sfx': case 'vo': md += `**${b.text}**\n\n`; break;
       case 'transition': md += `**${b.text}**\n\n`; break;
+      case 'table': md += `${b.text}\n\n`; break;
     }
   }
   return md;
@@ -599,11 +620,25 @@ function renderBlockInner(b, isEditing, highlight) {
       const cl = getCharColor(b.text);
       return `<div class="block block-character ${cl}" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
     }
-    case 'dialogue': return `<div class="block block-dialogue" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
-    case 'direction': return `<div class="block block-direction" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
+    case 'dialogue': return `<div class="block block-dialogue" data-edit="${b.id}" style="${highlight}">${parseInline(b.text)}</div>`;
+    case 'direction': return `<div class="block block-direction" data-edit="${b.id}" style="${highlight}">${parseInline(b.text)}</div>`;
     case 'sfx': case 'vo': return `<div class="block block-sfx" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
     case 'transition': return `<div class="block block-transition" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
-    default: return `<div class="block" data-edit="${b.id}" style="${highlight}">${esc(b.text)}</div>`;
+    case 'table': {
+      const rows = b.text.split('\n').filter(r => r.trim());
+      const isSep = r => /^\|[\s\-:|]+\|/.test(r.replace(/\s/g,''));
+      let inHead = true;
+      let tHtml = '<table>';
+      rows.forEach(row => {
+        if (isSep(row)) { inHead = false; return; }
+        const cells = row.split('|').slice(1,-1).map(c => c.trim());
+        const tag = inHead ? 'th' : 'td';
+        tHtml += `<tr>${cells.map(c => `<${tag}>${parseInline(c)}</${tag}>`).join('')}</tr>`;
+      });
+      tHtml += '</table>';
+      return `<div class="block block-table" data-edit="${b.id}" style="${highlight}">${tHtml}</div>`;
+    }
+    default: return `<div class="block" data-edit="${b.id}" style="${highlight}">${parseInline(b.text)}</div>`;
   }
 }
 
