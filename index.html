@@ -14,11 +14,11 @@
 <meta property="og:url" content="https://heyjune3737.github.io/scriptview/">
 <meta property="og:title" content="CreatorView MD — 창작자를 위한 마크다운 뷰어">
 <meta property="og:description" content="마크다운(.md) 대본 파일을 문서 양식으로 보여주고 편집하는 창작자용 뷰어">
-<meta property="og:image" content="https://heyjune3737.github.io/scriptview/icon-512.png">
+<meta property="og:image" content="https://heyjune3737.github.io/scriptview/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="CreatorView MD — 창작자를 위한 마크다운 뷰어">
 <meta name="twitter:description" content="마크다운(.md) 대본 파일을 문서 양식으로 보여주고 편집하는 창작자용 뷰어">
-<meta name="twitter:image" content="https://heyjune3737.github.io/scriptview/icon-512.png">
+<meta name="twitter:image" content="https://heyjune3737.github.io/scriptview/og-image.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 
@@ -522,6 +522,7 @@ function render() {
     <button class="toolbar-btn" id="btn-open">📂 열기</button>
     <button class="toolbar-btn" id="btn-save">💾 저장</button>
     <button class="toolbar-btn" id="btn-dark" style="font-size:16px;padding:4px 8px">${state.darkMode ? '☀️' : '🌙'}</button>
+    ${_installPrompt ? `<button class="toolbar-btn" id="btn-install" style="background:var(--accent);color:#fff;border-color:var(--accent)">⬇️ 설치</button>` : ''}
     <input type="file" accept=".md,.txt" id="file-input" style="display:none">
   </div>`;
 
@@ -671,6 +672,7 @@ function renderLanding() {
     </div>
     <input type="file" accept=".md,.txt" id="file-input-landing" style="display:none">
     <button class="demo-btn" id="demo-btn">데모 대본 보기</button>
+    ${_installPrompt ? `<button class="demo-btn" id="btn-install-landing" style="margin-top:8px;border-color:var(--accent);color:var(--accent)">⬇️ 앱으로 설치 (데스크탑)</button>` : ''}
     <div style="position:fixed;bottom:16px;right:20px">
       <button id="dark-toggle-landing" style="background:none;border:none;font-size:22px;cursor:pointer;opacity:0.5">${state.darkMode ? '☀️' : '🌙'}</button>
     </div>
@@ -685,6 +687,7 @@ function bindLanding() {
   fi?.addEventListener('change', e => handleFile(e.target.files[0]));
   document.getElementById('demo-btn')?.addEventListener('click', () => loadScript(DEMO, '접신_데모.md'));
   document.getElementById('dark-toggle-landing')?.addEventListener('click', () => { state.darkMode = !state.darkMode; localStorage.setItem('sv-dark', state.darkMode ? '1' : '0'); render(); });
+  document.getElementById('btn-install-landing')?.addEventListener('click', async () => { if (_installPrompt) { _installPrompt.prompt(); const { outcome } = await _installPrompt.userChoice; if (outcome === 'accepted') { _installPrompt = null; render(); } } });
 
   // Drag & drop
   document.body.addEventListener('dragover', e => { e.preventDefault(); dz?.classList.add('drag-over'); });
@@ -698,6 +701,7 @@ function bindEvents() {
   document.getElementById('btn-stats')?.addEventListener('click', () => { state.showStats = !state.showStats; state.showOutline = false; render(); });
   document.getElementById('btn-search')?.addEventListener('click', () => { state.showSearch = !state.showSearch; render(); setTimeout(() => document.getElementById('search-input')?.focus(), 50); });
   document.getElementById('btn-dark')?.addEventListener('click', () => { state.darkMode = !state.darkMode; localStorage.setItem('sv-dark', state.darkMode ? '1' : '0'); render(); });
+  document.getElementById('btn-install')?.addEventListener('click', async () => { if (_installPrompt) { _installPrompt.prompt(); const { outcome } = await _installPrompt.userChoice; if (outcome === 'accepted') { _installPrompt = null; render(); } } });
   document.getElementById('btn-open')?.addEventListener('click', () => document.getElementById('file-input')?.click());
   document.getElementById('btn-save')?.addEventListener('click', exportMd);
   document.getElementById('file-input')?.addEventListener('change', e => handleFile(e.target.files[0]));
@@ -926,9 +930,21 @@ function init() {
 }
 
 // Register service worker for PWA
-  if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+// ─── PWA Install Prompt ───
+let _installPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _installPrompt = e;
+  render(); // show install button
+});
+window.addEventListener('appinstalled', () => {
+  _installPrompt = null;
+  render();
+});
 
 init();
 </script>
