@@ -1,4 +1,4 @@
-const CACHE_NAME = 'scriptview-v1';
+const CACHE_NAME = 'scriptview-v2';
 const ASSETS = [
   '/scriptview/',
   '/scriptview/index.html'
