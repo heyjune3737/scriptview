@@ -1,0 +1,25 @@
+{
+  "name": "CreatorView MD",
+  "short_name": "CreatorView",
+  "description": "마크다운(.md) 대본 파일을 문서 양식으로 보여주고 편집하는 창작자용 뷰어",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F5F0EB",
+  "theme_color": "#2C5F8A",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": ".",
+      "accept": {
+        "text/markdown": [".md"],
+        "text/plain": [".txt"]
+      }
+    }
+  ]
+}
